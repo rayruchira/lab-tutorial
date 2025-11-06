@@ -13,7 +13,6 @@ validImage x = forall i j . 0 <= x ! i ! j <= 1
 @network
 classifier : Image -> Tensor Real [10]
 
--- "advises" (same as your example, kept for reference/use if needed)
 advises : Image -> Label -> Bool
 advises x i = forall j . j != i => classifier x ! i > classifier x ! j
 
@@ -21,32 +20,29 @@ advises x i = forall j . j != i => classifier x ! i > classifier x ! j
 -- Parameters
 
 @parameter
-epsilon : Real            -- radius of the L∞ ball
+epsilon : Real
 
 @parameter
-eta : Real                -- SCR upper bound on non-true class scores
+eta : Real
 
 --------------------------------------------------------------------------------
 -- Helpers
 
--- L∞-ball around 0 with radius epsilon
 boundedByEpsilon : Image -> Bool
 boundedByEpsilon x = forall i j . -epsilon <= x ! i ! j <= epsilon
 
 --------------------------------------------------------------------------------
 -- Strong Classification Robustness around a point
--- For every perturbation within epsilon (and still a valid image),
--- ALL non-true classes' scores must be ≤ eta.
 
 strongAround : Image -> Label -> Bool
 strongAround image label =
   forall perturbation .
-    let x' = image - perturbation in
-    boundedByEpsilon perturbation and validImage x' =>
-      (forall i . i != label => classifier x' ! i <= eta)
+    let xPrime = image - perturbation in
+    boundedByEpsilon perturbation and validImage xPrime =>
+      (forall i . i != label => classifier xPrime ! i <= eta)
 
 --------------------------------------------------------------------------------
--- Dataset-level property (like your previous spec)
+-- Dataset-level property
 
 @parameter(infer=True)
 n : Nat

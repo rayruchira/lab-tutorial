@@ -60,5 +60,5 @@ vehicle verify \
   --parameter eta:0.20 \
   --dataset trainingImages:correctpath/t2-images.idx \
   --dataset trainingLabels:correctpath/t2-labels.idx \
-  --verifier Marabous
+  --verifier Marabou
 ```
