@@ -47,3 +47,17 @@ vehicle verify \
 
 Note that the epsilon value can be changed, but the memory requirements of
 Marabou may increase drastically as epsilon increases.
+
+
+Bash for strong verification:
+
+```bash
+vehicle verify \
+  --specification your_file.vcl \
+  --verifier Marabou \
+  --network classifier:path/to/mnist_net.onnx \
+  --property strong_classification_robustness_property \
+  --parameter epsilon 0.01 \
+  --parameter eta 0.001 \
+  --parameter wrongLabel 3
+```
