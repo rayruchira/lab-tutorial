@@ -1,5 +1,5 @@
 --------------------------------------------------------------------------------
--- Inputs and outputs
+-- Inputs and outputs (same as example)
 
 type Image = Tensor Real [28, 28]
 type Label = Index 10
@@ -8,41 +8,41 @@ validImage : Image -> Bool
 validImage x = forall i j . 0 <= x ! i ! j <= 1
 
 --------------------------------------------------------------------------------
--- Network
+-- Network (same)
 
 @network
 classifier : Image -> Tensor Real [10]
 
-advises : Image -> Label -> Bool
-advises x i = forall j . j != i => classifier x ! i > classifier x ! j
-
---------------------------------------------------------------------------------
--- Parameters
-
-@parameter
-epsilon : Real
-
+-- Stronger "advises": still argmax, PLUS cap all non-true classes by eta.
+-- Minimal change to your original one-liner.
 @parameter
 eta : Real
 
+advises : Image -> Label -> Bool
+advises x i =
+  forall j . j != i =>
+    (classifier x ! i > classifier x ! j) and (classifier x ! j <= eta)
+
 --------------------------------------------------------------------------------
--- Helpers
+-- Epsilon + ball (same idea)
+
+@parameter
+epsilon : Real
 
 boundedByEpsilon : Image -> Bool
 boundedByEpsilon x = forall i j . -epsilon <= x ! i ! j <= epsilon
 
 --------------------------------------------------------------------------------
--- Strong Classification Robustness around a point
+-- Robustness around a point (unchanged shape)
 
-strongAround : Image -> Label -> Bool
-strongAround image label =
-  forall perturbation .
-    let xPrime = image - perturbation in
-    boundedByEpsilon perturbation and validImage xPrime =>
-      (forall i . i != label => classifier xPrime ! i <= eta)
+robustAround : Image -> Label -> Bool
+robustAround image label = forall pertubation .
+  let perturbedImage = image - pertubation in
+  boundedByEpsilon pertubation and validImage perturbedImage =>
+    advises perturbedImage label
 
 --------------------------------------------------------------------------------
--- Dataset-level property
+-- Dataset plumbing (same)
 
 @parameter(infer=True)
 n : Nat
@@ -54,5 +54,5 @@ trainingImages : Vector Image n
 trainingLabels : Vector Label n
 
 @property
-strongRobust : Vector Bool n
-strongRobust = foreach k . strongAround (trainingImages ! k) (trainingLabels ! k)
+robust : Vector Bool n
+robust = foreach i . robustAround (trainingImages ! i) (trainingLabels ! i)
